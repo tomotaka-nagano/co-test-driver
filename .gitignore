@@ -1,0 +1,9 @@
+# this app.
+
+
+# python
+*.py[cod]
+__pycache__/
+
+## exmgai
+env.toml
