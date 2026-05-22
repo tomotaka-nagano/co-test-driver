@@ -1,5 +1,6 @@
 # this app.
-
+res/
+debug/
 
 # python
 *.py[cod]
