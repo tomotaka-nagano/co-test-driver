@@ -183,7 +183,7 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
-    { name = "exmgai", git = "https://github.com/tomotaka-nagano/exmgai.git?rev=v0.0.2" },
+    { name = "exmgai", git = "https://github.com/tomotaka-nagano/exmgai.git?rev=v0.0.6" },
     { name = "fastapi", specifier = ">=0.136.1" },
 ]
 
@@ -260,8 +260,8 @@ wheels = [
 
 [[package]]
 name = "exmgai"
-version = "0.0.2"
-source = { git = "https://github.com/tomotaka-nagano/exmgai.git?rev=v0.0.2#3a88aa7accd513b37197acc6ffdc7c321d6c00ba" }
+version = "0.0.6"
+source = { git = "https://github.com/tomotaka-nagano/exmgai.git?rev=v0.0.6#173f607a58038c88abc558bc1fbc24bffdc01dd1" }
 dependencies = [
     { name = "azure-identity" },
     { name = "openai" },

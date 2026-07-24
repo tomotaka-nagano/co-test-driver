@@ -10,4 +10,4 @@ dependencies = [
 ]
 
 [tool.uv.sources]
-exmgai = { git = "https://github.com/tomotaka-nagano/exmgai.git", rev = "v0.0.2" }
+exmgai = { git = "https://github.com/tomotaka-nagano/exmgai.git", rev = "v0.0.6" }
