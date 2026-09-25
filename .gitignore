@@ -8,3 +8,6 @@ __pycache__/
 
 ## exmgai
 env.toml
+
+# runtime data
+data/

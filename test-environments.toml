@@ -1,0 +1,9 @@
+[[environments]]
+id = 'local'
+name = 'Local command runner'
+enabled = true
+command = [
+    '{product_path}',
+    '--testcase', '{testcase_path}',
+    '--output', '{result_path}',
+]

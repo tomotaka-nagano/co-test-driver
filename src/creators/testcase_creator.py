@@ -58,14 +58,15 @@ class TestcaseCreator:
         self.api_doc_path = Path(api_doc_path)
         self._api_doc = self.api_doc_path.read_text(encoding='utf-8')
 
-    def generate(self, scenario_path: str | Path) -> list[dict]:
+    def generate(self, scenario_path: str | Path) -> list[list[dict]]:
+        """シナリオごとにテストケースを生成し、シナリオ単位のリストで返す。"""
         scenario_path = Path(scenario_path)
-        scenarios_data = json.loads(scenario_path.read_text(encoding='utf-8'))
+        scenarios = self._load_scenarios(scenario_path)
 
-        all_testcases: list[dict] = []
+        all_groups: list[list[dict]] = []
         client = Client('gpt-5.4')
 
-        for i, item in enumerate(scenarios_data['items'], start=1):
+        for i, item in enumerate(scenarios, start=1):
             scenario = Scenario.model_validate(item)
             prompt = CREATE_PROMPT.format(
                 scenario=json.dumps(item, ensure_ascii=False, indent=2),
@@ -74,39 +75,22 @@ class TestcaseCreator:
 
             response = client.chat.create(prompt)
             result = self._parse_json_array(response.content)
-
-            for tc in result:
-                all_testcases.append(tc)
+            all_groups.append(result)
 
             print(f'シナリオ {i} ({scenario.summary[:30]}...) → {len(result)} テストケース生成')
 
-        return all_testcases
+        return all_groups
 
-    def describe(self, scenario_path: str | Path, testcases_path: str | Path) -> str:
+    def describe(self, scenario_path: str | Path, testcase_groups: list[list[dict]]) -> str:
+        """シナリオとテストケースグループの対応からMarkdown記述を生成する。"""
         scenario_path = Path(scenario_path)
-        testcases_path = Path(testcases_path)
-        scenarios_data = json.loads(scenario_path.read_text(encoding='utf-8'))
-        testcases_list: list[dict] = json.loads(testcases_path.read_text(encoding='utf-8'))
-
-        # シナリオ番号ごとにテストケースをグループ化
-        tc_by_scenario: dict[int, list[dict]] = {}
-        for tc in testcases_list:
-            name: str = tc.get('name', '')
-            for i in range(len(scenarios_data['items']), 0, -1):
-                prefix = f'S-{i}'
-                if name.startswith(prefix) and (
-                    len(name) == len(prefix)
-                    or name[len(prefix)] in (':', ' ', '-')
-                ):
-                    tc_by_scenario.setdefault(i, []).append(tc)
-                    break
+        scenarios = self._load_scenarios(scenario_path)
 
         md_parts: list[str] = []
         client = Client('gpt-5.4')
 
-        for i, item in enumerate(scenarios_data['items'], start=1):
+        for i, (item, group) in enumerate(zip(scenarios, testcase_groups), start=1):
             scenario = Scenario.model_validate(item)
-            group = tc_by_scenario.get(i, [])
             if not group:
                 continue
 
@@ -130,3 +114,20 @@ class TestcaseCreator:
             text = text.split('\n', 1)[1]
             text = text.rsplit('```', 1)[0].strip()
         return json.loads(text)
+
+    @staticmethod
+    def _extract_list(data: list | dict) -> list[dict]:
+        """JSON データからリスト部分を抽出する。
+
+        配列ならそのまま、オブジェクトなら最初のリスト型の値を返す。
+        """
+        if isinstance(data, list):
+            return data
+        for v in data.values():
+            if isinstance(v, list):
+                return v
+        return []
+
+    def _load_scenarios(self, path: Path) -> list[dict]:
+        data = json.loads(path.read_text(encoding='utf-8'))
+        return self._extract_list(data)
